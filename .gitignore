@@ -17,3 +17,5 @@ Thumbs.db
 # Optional build outputs
 dist/
 build/
+
+spotify/credentials.py

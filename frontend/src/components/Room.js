@@ -26,15 +26,13 @@ function Room({ leaveRoomCallback }) {
         return response.json();
       })
       .then((data) => {
-        setState({
-          ...state,
+        setState((prev) => ({
+          ...prev,
           votesToSkip: data.votes_to_skip,
           guestCanPause: data.guest_can_pause,
           isHost: data.is_host,
-        });
-        if (data.is_host) {
-          authenticateSpotify();
-        }
+        }));
+        if (data.is_host) authenticateSpotify();
       })
       .catch((error) => {
         console.error("Error fetching room details:", error);
@@ -65,27 +63,17 @@ function Room({ leaveRoomCallback }) {
   function getCurrentSong() {
     fetch("/spotify/current-song")
       .then((response) => {
-        if (!response.ok) {
-          console.warn("Response not OK:", response.status);
-          return null;
-        }
+        if (!response.ok) return null;
         return response.text().then((text) => {
-          if (!text) {
-            console.warn("Empty response body");
-            return null;
-          }
+          if (!text) return null;
           try {
             return JSON.parse(text);
-          } catch (err) {
-            console.error("JSON parse error:", err);
+          } catch {
             return null;
           }
         });
       })
-      .then((data) => {
-        console.log("Fetched song data:", data);
-        setSong(data);
-      })
+      .then((data) => setSong(data))
       .catch((error) => {
         console.error("Error fetching current song:", error);
         setSong(null);
@@ -93,12 +81,11 @@ function Room({ leaveRoomCallback }) {
   }
 
   function leaveButtonPressed() {
-    const requestOptions = {
+    fetch("/api/leave-room", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-    };
-    fetch("/api/leave-room", requestOptions)
-      .then((_response) => {
+    })
+      .then(() => {
         leaveRoomCallback();
         navigate("/");
       })
@@ -113,7 +100,7 @@ function Room({ leaveRoomCallback }) {
 
   function renderSettings() {
     return (
-      <div style={{ textAlign: "center" }}>
+      <div style={{ margin: "20px", textAlign: "center" }}>
         <CreateRoomPage
           update={true}
           votesToSkip={state.votesToSkip}
@@ -121,14 +108,16 @@ function Room({ leaveRoomCallback }) {
           roomCode={roomCode}
           updateCallback={getRoomDetails}
         />
-        <button onClick={() => updateShowSettings(false)}>Close</button>
+        <button onClick={() => updateShowSettings(false)} style={{ marginTop: 12 }}>
+          Close
+        </button>
       </div>
     );
   }
 
   function renderSettingsButton() {
     return (
-      <div style={{ textAlign: "center" }}>
+      <div style={{ marginTop: 16 }}>
         <button onClick={() => updateShowSettings(true)}>Settings</button>
       </div>
     );
@@ -146,14 +135,28 @@ function Room({ leaveRoomCallback }) {
   }
 
   return (
-    <div style={{ margin: "20px", textAlign: "center" }}>
-      <h4>Code: {roomCode}</h4>
-      <p>Votes: {state.votesToSkip}</p>
-      <p>Guest Can Pause: {state.guestCanPause.toString()}</p>
-      <p>Host: {state.isHost.toString()}</p>
-      <MusicPlayer song={song} refreshSong={getCurrentSong} />
+    <div
+      style={{
+        maxWidth: 700,
+        margin: "20px auto",
+        padding: 20,
+        border: "1px solid #ccc",
+        borderRadius: 8,
+        textAlign: "center",
+      }}
+    >
+      <h2>Room Code: {roomCode}</h2>
+      <p>Votes Required to Skip: <strong>{state.votesToSkip}</strong></p>
+      <p>Guest Can Pause: <strong>{state.guestCanPause.toString()}</strong></p>
+      <p>Host: <strong>{state.isHost.toString()}</strong></p>
+
+      <div style={{ margin: "20px 0" }}>
+        <MusicPlayer song={song} refreshSong={getCurrentSong} />
+      </div>
+
       {state.isHost && renderSettingsButton()}
-      <div>
+
+      <div style={{ marginTop: 16 }}>
         <button onClick={leaveButtonPressed}>Leave Room</button>
       </div>
     </div>
