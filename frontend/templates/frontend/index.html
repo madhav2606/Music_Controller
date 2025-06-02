@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Music Controller</title>
+    {% comment %} if you try to use {% static "something.css" %} without loading it first, Django will raise a TemplateSyntaxError. {% endcomment %}
+    {% load static %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    />
+    <link rel="stylesheet" type="text/css" href="{% static "css/index.css" %}"
+    />
+  </head>
+  <body>
+    <div id="main">
+      <div id="app"></div>
+    </div>
+
+    {% comment %} this will be grabbing our bundled javascript, which will hold all our react code from static/frontend and load that here so that react can actually take over the 'app' div tag {% endcomment %}
+    <script src="{% static "frontend/main.js" %}"></script>
+  </body>
+</html>
